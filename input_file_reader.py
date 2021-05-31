@@ -185,7 +185,9 @@ class InputFileReader:
     def remove_nodes(self, nodes_to_include):
         # Find the elements corresponding to the model nodes
         nodal_id_set = set(nodes_to_include)
+        element_id_set = set()
         new_element_data = []
+
         for e_type, element_data in self.elements.items():
             for element in element_data:
                 include = True
@@ -195,6 +197,14 @@ class InputFileReader:
                 if include:
                     new_element_data.append([int(e) for e in element])
             self.elements[e_type] = np.array(new_element_data, dtype=int)
+            element_id_set.update(self.elements[e_type][:, 0])
+        for set_type, label_set in zip(['nset', 'elset'], [nodal_id_set, element_id_set]):
+            for set_name, set_data in self.set_data[set_type].items():
+                new_set_data = []
+                for label in set_data:
+                    if label in label_set:
+                        new_set_data.append(label)
+                self.set_data[set_type][set_name] = new_set_data
 
 if __name__ == '__main__':
     directory = '../fatigue_specimens/utmis_notched/'
