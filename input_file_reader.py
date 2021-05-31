@@ -60,7 +60,7 @@ class InputFileReader:
             self.elements[element_type] = np.array(data, dtype=int)
 
     def write_geom_include_file(self, filename, simulation_type='Mechanical'):
-        file_lines = ['*NODE, NSET=ALL_NODES']
+        file_lines = ['*node, nset=all_nodes']
         for node in self.nodal_data:
             node_string = '\t' + str(int(node[0])) + ', '
             for n_data in node[1:]:
@@ -77,7 +77,7 @@ class InputFileReader:
                     e_type = 'DCAX' + element_type[-1]
                 else:
                     e_type = 'DC3D' + element_type[-1]
-            file_lines.append('*ELEMENT, TYPE=' + e_type + ', ELSET=ALL_ELEMENTS', )
+            file_lines.append('*element, type=' + e_type + ', elset=all_elements', )
             for element in element_data:
                 element_string = [str(e) for e in element]
                 element_string = ', '.join(element_string)
@@ -85,7 +85,7 @@ class InputFileReader:
 
         with open(filename, 'w') as inc_file:
             for line in file_lines:
-                inc_file.write(line + '\n')
+                inc_file.write(line.lower() + '\n')
             inc_file.write('**EOF')
 
     def write_sets_file(self, filename, skip_prefix='_', str_to_remove_from_setname='',
@@ -98,41 +98,36 @@ class InputFileReader:
                     return False
             return True
 
-        exposed_elements_name = ''
-        exposed_nodes_name = ''
-        for elset_name in self.set_data['elset']:
-            if 'EXPOSED_ELEMENTS' in elset_name.upper():
-                exposed_elements_name = elset_name
-        for nset_name in self.set_data['nset']:
-            if 'EXPOSED_NODES' in nset_name.upper():
-                exposed_nodes_name = nset_name
-        exposed_elements = self.set_data['elset'][exposed_elements_name]
-        exposed_nodes = set(self.set_data['nset'][exposed_nodes_name])
-        element_surfaces = ([], [], [], [], [], [])
-        elements = {}
-        for element_type, element_data in self.elements.items():
-            elements[element_type] = dict(zip(element_data[:, 0], element_data[:, 1:]))
-        for element in exposed_elements:
-            dimensionality = None
-            nodes = None
-            conn = None
-            surface_nodes_lists = None
-            for element_type, element_data in elements.items():
-                if element in element_data:
-                    dimensionality = element_type[1]
-                    nodes = int(element_type[3])
-                    conn = element_data[element]
-            if dimensionality in ['A', '2'] and nodes == 4:
-                surface_nodes_lists = [[0, 1], [1, 2], [2, 3], [3, 0]]
-            if dimensionality == '3' and nodes == 8:
-                surface_nodes_lists = [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 4, 5],
-                                       [1, 2, 5, 6], [2, 3, 6, 7], [0, 3, 4, 7]]
-            for i, surface_nodes in enumerate(surface_nodes_lists):
-                if check_surface_id(surface_nodes, conn, exposed_nodes):
-                    element_surfaces[i].append(element)
-        for i, element_surface in enumerate(element_surfaces):
-            if element_surface:
-                self.set_data['elset']['EXPOSED_ELEMENTS_' + str(i+1)] = element_surface
+        if surfaces_from_element_sets:
+            for name in surfaces_from_element_sets:
+                surface_elements = self.set_data['elset'][name + '_elements']
+                surface_nodes = set(self.set_data['nset'][name + '_nodes'])
+            element_surfaces = ([], [], [], [], [], [])
+            elements = {}
+            for element_type, element_data in self.elements.items():
+                elements[element_type] = dict(zip(element_data[:, 0], element_data[:, 1:]))
+            for element in surface_elements:
+                dimensionality = None
+                nodes = None
+                conn = None
+                surface_nodes_lists = None
+                for element_type, element_data in elements.items():
+                    if element in element_data:
+                        dimensionality = element_type[1]
+                        nodes = int(element_type[3])
+                        conn = element_data[element]
+                        break
+                if dimensionality in ['A', '2'] and nodes == 4:
+                    surface_nodes_lists = [[0, 1], [1, 2], [2, 3], [3, 0]]
+                if dimensionality == '3' and nodes == 8:
+                    surface_nodes_lists = [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 4, 5],
+                                           [1, 2, 5, 6], [2, 3, 6, 7], [0, 3, 4, 7]]
+                for i, surface_node_order in enumerate(surface_nodes_lists):
+                    if check_surface_id(surface_node_order, conn, surface_nodes):
+                        element_surfaces[i].append(element)
+            for i, element_surface in enumerate(element_surfaces):
+                if element_surface:
+                    self.set_data['elset'][name + '_elements_' + str(i+1)] = element_surface
 
         def write_set_rows(data_to_write):
             data_line = '\t'
@@ -149,18 +144,18 @@ class InputFileReader:
             for key, data in set_data.items():
                 key = key.lower().replace(str_to_remove_from_setname.lower(), '')
                 if not key.startswith(skip_prefix) and (key.lower() not in ['all_elements', 'all_nodes']):
-                    file_lines.append(('*' + set_type + ', ' + set_type + '=' + key).upper())
+                    file_lines.append(('*' + set_type + ', ' + set_type + '=' + key))
                     write_set_rows(data)
 
         if surfaces_from_element_sets:
-            for surface_name, element_set_name in surfaces_from_element_sets:
-                file_lines.append('*SURFACE, TYPE = ELEMENT, NAME=' + surface_name + ', TRIM=YES')
-                file_lines.append('\t' + element_set_name)
+            for name in surfaces_from_element_sets:
+                file_lines.append('*surface, type=element, name=' + name + '_surface , trim=yes')
+                file_lines.append('\t' + name + '_elements')
 
             for i, element_surface in enumerate(element_surfaces, 1):
                 if element_surface:
-                    file_lines.append('*SURFACE, TYPE = ELEMENT, NAME=EXPOSED_SURFACE_' + str(i))
-                    file_lines.append('\tEXPOSED_ELEMENTS_' + str(i) + ', S' + str(i))
+                    file_lines.append('*surface, type=element, name=' + name + '_surface_' + str(i))
+                    file_lines.append('\t' + name + '_elements_' + str(i) + ', s' + str(i))
         with open(filename, 'w') as set_file:
             for line in file_lines:
                 set_file.write(line + '\n')
@@ -169,6 +164,37 @@ class InputFileReader:
     def create_node_set(self, name, node_numbers):
         self.set_data['nset'][name] = node_numbers
 
+    def renumber_nodes_and_elements(self):
+        node_labels = {n: i for i, n in enumerate(self.nodal_data[:, 0], 1)}
+        self.nodal_data[:, 0] = list(node_labels.values())
+        element_labels = {}
+        element_counter = 1
+        for element_data in self.elements.values():
+            for e in element_data:
+                element_labels[e[0]] = element_counter
+                e[0] = element_counter
+                element_counter += 1
+                for j, n in enumerate(e[1:], 1):
+                    e[j] = node_labels[n]
+
+        for set_type, label_dict in zip(['nset', 'elset'], [node_labels, element_labels]):
+            for set_data in self.set_data[set_type].values():
+                for i, label in enumerate(set_data):
+                    set_data[i] = label_dict[label]
+
+    def remove_nodes(self, nodes_to_include):
+        # Find the elements corresponding to the model nodes
+        nodal_id_set = set(nodes_to_include)
+        new_element_data = []
+        for e_type, element_data in self.elements.items():
+            for element in element_data:
+                include = True
+                for node in element[1:]:
+                    if int(node) not in nodal_id_set:
+                        include = False
+                if include:
+                    new_element_data.append([int(e) for e in element])
+            self.elements[e_type] = np.array(new_element_data, dtype=int)
 
 if __name__ == '__main__':
     directory = '../fatigue_specimens/utmis_notched/'
