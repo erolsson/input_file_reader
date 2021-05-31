@@ -1,5 +1,8 @@
+import numpy as np
+
 def mirror_model(input_file_reader, axis):
-    input_file_reader.nodal_data[:, 2] *= -1
+    directions = {'x': 0, 'y': 0, 'z': 0}
+    input_file_reader.nodal_data[:, directions[axis]] *= -1
     for element_type, element_data in input_file_reader.elements.items():
         new_elements = np.copy(element_data)
         if axis == "x":
