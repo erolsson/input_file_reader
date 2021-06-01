@@ -100,6 +100,7 @@ class InputFileReader:
 
         if surfaces_from_element_sets:
             for name in surfaces_from_element_sets:
+                name = name.lower()
                 surface_elements = self.set_data['elset'][name + '_elements']
                 surface_nodes = set(self.set_data['nset'][name + '_nodes'])
                 element_surfaces = ([], [], [], [], [], [])
