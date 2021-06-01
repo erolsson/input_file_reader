@@ -102,32 +102,32 @@ class InputFileReader:
             for name in surfaces_from_element_sets:
                 surface_elements = self.set_data['elset'][name + '_elements']
                 surface_nodes = set(self.set_data['nset'][name + '_nodes'])
-            element_surfaces = ([], [], [], [], [], [])
-            elements = {}
-            for element_type, element_data in self.elements.items():
-                elements[element_type] = dict(zip(element_data[:, 0], element_data[:, 1:]))
-            for element in surface_elements:
-                dimensionality = None
-                nodes = None
-                conn = None
-                surface_nodes_lists = None
-                for element_type, element_data in elements.items():
-                    if element in element_data:
-                        dimensionality = element_type[1]
-                        nodes = int(element_type[3])
-                        conn = element_data[element]
-                        break
-                if dimensionality in ['A', '2'] and nodes == 4:
-                    surface_nodes_lists = [[0, 1], [1, 2], [2, 3], [3, 0]]
-                if dimensionality == '3' and nodes == 8:
-                    surface_nodes_lists = [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 4, 5],
-                                           [1, 2, 5, 6], [2, 3, 6, 7], [0, 3, 4, 7]]
-                for i, surface_node_order in enumerate(surface_nodes_lists):
-                    if check_surface_id(surface_node_order, conn, surface_nodes):
-                        element_surfaces[i].append(element)
-            for i, element_surface in enumerate(element_surfaces):
-                if element_surface:
-                    self.set_data['elset'][name + '_elements_' + str(i+1)] = element_surface
+                element_surfaces = ([], [], [], [], [], [])
+                elements = {}
+                for element_type, element_data in self.elements.items():
+                    elements[element_type] = dict(zip(element_data[:, 0], element_data[:, 1:]))
+                for element in surface_elements:
+                    dimensionality = None
+                    nodes = None
+                    conn = None
+                    surface_nodes_lists = None
+                    for element_type, element_data in elements.items():
+                        if element in element_data:
+                            dimensionality = element_type[1]
+                            nodes = int(element_type[3])
+                            conn = element_data[element]
+                            break
+                    if dimensionality in ['A', '2'] and nodes == 4:
+                        surface_nodes_lists = [[0, 1], [1, 2], [2, 3], [3, 0]]
+                    if dimensionality == '3' and nodes == 8:
+                        surface_nodes_lists = [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 4, 5],
+                                               [1, 2, 5, 6], [2, 3, 6, 7], [0, 3, 4, 7]]
+                    for i, surface_node_order in enumerate(surface_nodes_lists):
+                        if check_surface_id(surface_node_order, conn, surface_nodes):
+                            element_surfaces[i].append(element)
+                for i, element_surface in enumerate(element_surfaces):
+                    if element_surface:
+                        self.set_data['elset'][name + '_elements_' + str(i+1)] = element_surface
 
         def write_set_rows(data_to_write):
             data_line = '\t'
@@ -163,6 +163,9 @@ class InputFileReader:
 
     def create_node_set(self, name, node_numbers):
         self.set_data['nset'][name] = node_numbers
+
+    def create_element_set(self, name, element_numbers):
+        self.set_data['elset'][name] = element_numbers
 
     def renumber_nodes_and_elements(self):
         node_labels = {n: i for i, n in enumerate(self.nodal_data[:, 0], 1)}
