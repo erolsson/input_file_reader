@@ -209,14 +209,3 @@ class InputFileReader:
                     if label in label_set:
                         new_set_data.append(label)
                 self.set_data[set_type][set_name] = new_set_data
-
-if __name__ == '__main__':
-    directory = '../fatigue_specimens/utmis_notched/'
-    reader = InputFileReader()
-    surfaces = [('EXPOSED_SURFACE', 'EXPOSED_ELEMENTS')]
-    reader.read_input_file(directory + 'utmis_notched_geo.inc')
-    reader.write_geom_include_file(directory + 'utmis_notched_geo_carbon.inc', simulation_type='Carbon')
-    reader.write_geom_include_file(directory + 'utmis_notched_geo_thermal.inc', simulation_type='Thermal')
-    reader.write_geom_include_file(directory + 'utmis_notched_geo_mechanical.inc', simulation_type='Mechanical')
-    reader.write_sets_file(directory + 'utmis_notched_geo_sets.inc', str_to_remove_from_setname='Specimen_',
-                           surfaces_from_element_sets=surfaces)

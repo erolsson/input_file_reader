@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def mirror_model(input_file_reader, axis):
     directions = {'x': 1, 'y': 2, 'z': 3}
     input_file_reader.nodal_data[:, directions[axis]] *= -1
