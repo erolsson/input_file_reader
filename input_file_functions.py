@@ -1,7 +1,9 @@
+from copy import deepcopy
 import numpy as np
 
 
-def mirror_model(input_file_reader, axis):
+def mirror_model(input_file_data, axis):
+    input_file_reader = deepcopy(input_file_data)
     directions = {'x': 1, 'y': 2, 'z': 3}
     input_file_reader.nodal_data[:, directions[axis]] *= -1
     for element_type, element_data in input_file_reader.elements.items():
@@ -27,3 +29,4 @@ def mirror_model(input_file_reader, axis):
         else:
             raise ValueError("Invalid axis argument")
         input_file_reader.elements[element_type] = new_elements
+    return input_file_reader

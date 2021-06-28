@@ -16,11 +16,14 @@ class InputFileReader:
         key_word_data = None
         continue_line = False
         data = []
+        key_word_params = []
         for line in lines:
             if not line.startswith('**'):
                 if line.startswith('*'):
                     continue_line = False
                     key_word_line = line.split(',')
+                    key_word_params = key_word_line[1:]
+                    key_word_params = [parameter.lower().rstrip().lstrip() for parameter in key_word_params]
                     key_word = (key_word_line[0][1:]).lower().rstrip()   # Convert to lower case and remove newlines etc
                     key_word_data = [word.strip() for word in key_word_line[1:]]
                 else:  # We have a data_row
@@ -49,7 +52,11 @@ class InputFileReader:
                         set_name = key_word_data[0].split('=')[1].rstrip().lower()
                         if set_name not in self.set_data[key_word]:
                             self.set_data[key_word][set_name] = []
-                        self.set_data[key_word][set_name] += [int(label) for label in data if label]
+                        if 'generate' in key_word_params:
+                            start, stop, step = [int(val) for val in data_string]
+                            self.set_data[key_word][set_name] = list(range(start, stop, step))
+                        else:
+                            self.set_data[key_word][set_name] += [int(label) for label in data if label]
 
         self.nodal_data = np.zeros((len(nodes), len(nodes[0])))
 
