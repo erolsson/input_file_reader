@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='input_file_reader',
     version='0.1',
-    packages=[''],
+    packages=['input_file_reader'],
     url='',
     license='',
     author='erolsson',
