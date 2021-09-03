@@ -18,7 +18,7 @@ class InputFileReader:
         data = []
         key_word_params = []
         for line in lines:
-            if not line.startswith('**'):
+            if not line.startswith('**') or line:
                 if line.startswith('*'):
                     continue_line = False
                     key_word_line = line.split(',')
@@ -125,14 +125,20 @@ class InputFileReader:
                             nodes = int(element_type[3])
                             conn = element_data[element]
                             break
-                    if dimensionality in ['A', '2'] and nodes == 4:
-                        surface_nodes_lists = [[0, 1], [1, 2], [2, 3], [3, 0]]
-                    if dimensionality == '3' and nodes == 8:
-                        surface_nodes_lists = [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 4, 5],
-                                               [1, 2, 5, 6], [2, 3, 6, 7], [0, 3, 4, 7]]
-                    for i, surface_node_order in enumerate(surface_nodes_lists):
-                        if check_surface_id(surface_node_order, conn, surface_nodes):
-                            element_surfaces[i].append(element)
+                    # This handles the case that an element label is in the set but not in the model
+                    if dimensionality is not None:
+                        if dimensionality in ['A', '2'] and nodes == 4:
+                            surface_nodes_lists = [[0, 1], [1, 2], [2, 3], [3, 0]]
+                        if dimensionality == '3':
+                            if nodes == 8:
+                                surface_nodes_lists = [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 4, 5],
+                                                      [1, 2, 5, 6], [2, 3, 6, 7], [0, 3, 4, 7]]
+                            if nodes == 4:
+                                surface_nodes_lists = [[0, 1, 2], [0, 1, 3], [1, 2, 3], [0, 2, 3]]
+
+                        for i, surface_node_order in enumerate(surface_nodes_lists):
+                            if check_surface_id(surface_node_order, conn, surface_nodes):
+                                element_surfaces[i].append(element)
                 for i, element_surface in enumerate(element_surfaces):
                     if element_surface:
                         self.set_data['elset'][name + '_elements_' + str(i+1)] = element_surface
