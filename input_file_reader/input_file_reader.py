@@ -105,12 +105,13 @@ class InputFileReader:
                     return False
             return True
 
+        element_surfaces = {}
         if surfaces_from_element_sets:
             for name in surfaces_from_element_sets:
                 name = name.lower()
                 surface_elements = self.set_data['elset'][name + '_elements']
                 surface_nodes = set(self.set_data['nset'][name + '_nodes'])
-                element_surfaces = ([], [], [], [], [], [])
+                element_surfaces[name] = ([], [], [], [], [], [])
                 elements = {}
                 for element_type, element_data in self.elements.items():
                     elements[element_type] = dict(zip(element_data[:, 0], element_data[:, 1:]))
@@ -138,8 +139,8 @@ class InputFileReader:
 
                         for i, surface_node_order in enumerate(surface_nodes_lists):
                             if check_surface_id(surface_node_order, conn, surface_nodes):
-                                element_surfaces[i].append(element)
-                for i, element_surface in enumerate(element_surfaces):
+                                element_surfaces[name][i].append(element)
+                for i, element_surface in enumerate(element_surfaces[name]):
                     if element_surface:
                         self.set_data['elset'][name + '_elements_' + str(i+1)] = element_surface
 
@@ -163,13 +164,17 @@ class InputFileReader:
 
         if surfaces_from_element_sets:
             for name in surfaces_from_element_sets:
-                file_lines.append('*surface, type=element, name=' + name + '_surface , trim=yes')
-                file_lines.append('\t' + name + '_elements')
+                name = name.lower()
+                for i, element_surface in enumerate(element_surfaces[name], 1):
+                    if element_surface:
+                        file_lines.append('*surface, type=element, name=' + name + '_surface_' + str(i))
+                        file_lines.append('\t' + name + '_elements_' + str(i) + ', s' + str(i))
 
-            for i, element_surface in enumerate(element_surfaces, 1):
-                if element_surface:
-                    file_lines.append('*surface, type=element, name=' + name + '_surface_' + str(i))
-                    file_lines.append('\t' + name + '_elements_' + str(i) + ', s' + str(i))
+                file_lines.append('*surface, type=element, name=' + name + '_surface')
+                for i, element_surface in enumerate(element_surfaces[name], 1):
+                    if element_surface:
+                        file_lines.append('\t' + name + '_elements_' + str(i) + ', s' + str(i))
+
         with open(filename, 'w') as set_file:
             for line in file_lines:
                 set_file.write(line + '\n')
