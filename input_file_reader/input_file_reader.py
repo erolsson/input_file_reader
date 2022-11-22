@@ -80,11 +80,11 @@ class InputFileReader:
             e_type = element_type
             if simulation_type != 'Mechanical':
                 if element_type[1] == 'P':
-                    e_type = 'DC2D' + element_type[-1]
+                    e_type = 'DC2D' + element_type[3:]
                 elif element_type[1] == 'A':
-                    e_type = 'DCAX' + element_type[-1]
+                    e_type = 'DCAX' + element_type[3:]
                 else:
-                    e_type = 'DC3D' + element_type[-1]
+                    e_type = 'DC3D' + element_type[3:]
             file_lines.append('*element, type=' + e_type + ', elset=all_elements', )
             for element in element_data:
                 element_string = [str(e) for e in element]
@@ -95,7 +95,7 @@ class InputFileReader:
             for line in file_lines:
                 inc_file.write(line.lower() + '\n')
             inc_file.write('**EOF')
-    #dsdasda
+
     def write_sets_file(self, filename, skip_prefix='_', str_to_remove_from_setname='',
                         surfaces_from_element_sets=None):
         file_lines = []
@@ -124,8 +124,14 @@ class InputFileReader:
                     for element_type, element_data in elements.items():
                         if element in element_data:
                             dimensionality = element_type[1]
-                            nodes = int(element_type[3])
+                            for i in range(len(element_type[3:])):
+                                node_str = element_type[3:4+i]
+                                try:
+                                    nodes = int(node_str)
+                                except ValueError:
+                                    break
                             conn = element_data[element]
+
                             break
                     # This handles the case that an element label is in the set but not in the model
                     if dimensionality is not None:
@@ -138,6 +144,9 @@ class InputFileReader:
                             if nodes == 4:
                                 surface_nodes_lists = [[0, 1, 2], [0, 1, 3], [1, 2, 3], [0, 2, 3]]
 
+                            if nodes == 10:
+                                surface_nodes_lists = [[0, 1, 2, 4, 5, 6], [0, 1, 3, 4, 8, 7],
+                                                       [1, 2, 3, 5, 9, 8], [0, 2, 3, 6, 9, 7]]
                         for i, surface_node_order in enumerate(surface_nodes_lists):
                             if check_surface_id(surface_node_order, conn, surface_nodes):
                                 element_surfaces[name][i].append(element)
