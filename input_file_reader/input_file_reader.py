@@ -7,7 +7,7 @@ class InputFileReader:
         self.elements = {}
         self.set_data = {'nset': {}, 'elset': {}}
 
-    def read_input_file(self, model_filename):
+    def read_input_file(self, model_filename, geometry_scale_factor=1.):
         nodes = []
         elements = {}
         with open(model_filename) as full_model_file:
@@ -66,6 +66,9 @@ class InputFileReader:
 
         for element_type, data in elements.items():
             self.elements[element_type] = np.array(data, dtype=int)
+
+        if geometry_scale_factor != 1.:
+            self.nodal_data[:, 1:] *= geometry_scale_factor
 
     def write_geom_include_file(self, filename, simulation_type='Mechanical'):
         file_lines = ['*node, nset=all_nodes']
