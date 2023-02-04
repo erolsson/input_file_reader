@@ -118,6 +118,7 @@ class InputFileReader:
                 element_surfaces[name] = ([], [], [], [], [], [])
                 elements = {}
                 for element_type, element_data in self.elements.items():
+                    print(element_type)
                     elements[element_type] = dict(zip(element_data[:, 0], element_data[:, 1:]))
                 for element in surface_elements:
                     dimensionality = None
