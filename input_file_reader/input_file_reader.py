@@ -137,7 +137,6 @@ class InputFileReader:
 
                             break
                     # This handles the case that an element label is in the set but not in the model
-                    print(element_type, dimensionality)
                     if dimensionality is not None:
                         if dimensionality in ['A', '2'] and nodes == 4:
                             surface_nodes_lists = [[0, 1], [1, 2], [2, 3], [3, 0]]
