@@ -141,6 +141,7 @@ class InputFileReader:
                         if dimensionality in ['A', '2'] and nodes == 4:
                             surface_nodes_lists = [[0, 1], [1, 2], [2, 3], [3, 0]]
                         if dimensionality == '3':
+                            print(nodes)
                             if nodes == 8:
                                 surface_nodes_lists = [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 4, 5],
                                                       [1, 2, 5, 6], [2, 3, 6, 7], [0, 3, 4, 7]]
