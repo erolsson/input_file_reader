@@ -148,7 +148,6 @@ class InputFileReader:
                                 surface_nodes_lists = [[0, 1, 2], [0, 1, 3], [1, 2, 3], [0, 2, 3]]
                             if nodes == 6:
                                 surface_nodes_lists = [[0, 1, 2], [3, 4, 5], [0, 1, 4, 3], [1, 2, 5, 4], [0, 2, 5, 3]]
-
                             if nodes == 10:
                                 surface_nodes_lists = [[0, 1, 2, 4, 5, 6], [0, 1, 3, 4, 8, 7],
                                                        [1, 2, 3, 5, 9, 8], [0, 2, 3, 6, 9, 7]]
