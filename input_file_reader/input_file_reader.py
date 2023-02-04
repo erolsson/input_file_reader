@@ -118,7 +118,6 @@ class InputFileReader:
                 element_surfaces[name] = ([], [], [], [], [], [])
                 elements = {}
                 for element_type, element_data in self.elements.items():
-                    print(element_type)
                     elements[element_type] = dict(zip(element_data[:, 0], element_data[:, 1:]))
                 for element in surface_elements:
                     dimensionality = None
@@ -147,6 +146,8 @@ class InputFileReader:
                                                       [1, 2, 5, 6], [2, 3, 6, 7], [0, 3, 4, 7]]
                             if nodes == 4:
                                 surface_nodes_lists = [[0, 1, 2], [0, 1, 3], [1, 2, 3], [0, 2, 3]]
+                            if nodes == 6:
+                                surface_nodes_lists = [[0, 1, 2], [3, 4, 5], [0, 1, 4, 3], [1, 2, 5, 4], [0, 2, 5, 3]]
 
                             if nodes == 10:
                                 surface_nodes_lists = [[0, 1, 2, 4, 5, 6], [0, 1, 3, 4, 8, 7],
