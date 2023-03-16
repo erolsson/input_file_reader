@@ -58,8 +58,10 @@ class InputFileReader:
                         else:
                             self.set_data[key_word][set_name].update(int(label) for label in data if label)
                         data = []
-
-        self.nodal_data = np.zeros((len(nodes), len(nodes[0])))
+        if nodes:
+            self.nodal_data = np.zeros((len(nodes), len(nodes[0])))
+        else:
+            self.nodal_data = None
 
         for i, node in enumerate(nodes):
             self.nodal_data[i, :] = node
@@ -67,7 +69,7 @@ class InputFileReader:
         for element_type, data in elements.items():
             self.elements[element_type] = np.array(data, dtype=int)
 
-        if geometry_scale_factor != 1.:
+        if geometry_scale_factor != 1. and self.nodal_data is not None:
             self.nodal_data[:, 1:] *= geometry_scale_factor
 
     def write_geom_include_file(self, filename, simulation_type='Mechanical'):
